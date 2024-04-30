@@ -7,42 +7,64 @@ use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\ResponseInterface;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\DomCrawler\Crawler as DomCrawler;
 
 class CustomCrawlObserver extends CrawlObserver
 {
     private $content;
+    private $parameter;
+    private $parameterName;
 
-    public function __construct() {
+    public function __construct($parameter, $parameterName) {
         $this->content = NULL;
+        $this->parameter = $parameter;
+        $this->parameterName = $parameterName;
     }  
 
     public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOnUrl = null, $linkText = null): void {
         $doc = new \DOMDocument();
         @$doc->loadHTML($response->getBody());
-        //# save HTML 
-        $content = $doc->saveHTML();
-        //# convert encoding
-        $content1 = mb_convert_encoding($content,'UTF-8',mb_detect_encoding($content,'UTF-8, ISO-8859-1',true));
-        //# strip all javascript
-        $content2 = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content1);
-        //# strip all style
-        $content3 = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $content2);
-        //# strip tags
-        $content4 = str_replace('<',' <',$content3);
-        $content5 = strip_tags($content4);
-        $content6 = str_replace( '  ', ' ', $content5 );
-        //# strip white spaces and line breaks
-        $content7 = preg_replace('/\s+/S', " ", $content6);
-        //# html entity decode - ö was shown as &ouml;
-        $html = html_entity_decode($content7);
-        //# append
-        $this->content .= $html;
-        $title = $doc->getElementById("inner_chap_content_1")->nodeValue;
 
-        // echo "<br>$title<br><br>";
+        //Handle data
+        $crawlerData = new DomCrawler($doc);
+        if ($this->parameter === 'class' || $this->parameter === 'id') {
+            $this->getDataFromSpecificElement($crawlerData, $this->parameter, $this->parameterName);
+        } else {
+            $this->saveHTML($doc);
+        }
     }
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null, $linkText = null): void {
         Log::error('crawlFailed',['url'=>$url,'error'=>$requestException->getMessage()]);
+    }
+
+    // Find and get data from specific element HTML
+    protected function getDataFromSpecificElement($crawlerData, $parameter, $parameterName)
+    {
+        $selector = $parameter === 'class' ? ".$parameterName" : "#$parameterName";
+
+        $data = $crawlerData->filter($selector)->each(function (DomCrawler $node) {
+            return $node->text();
+        });
+
+        foreach ($data as $item) {
+            echo "{$item}\n";
+        }
+    }
+
+    // Save HTML
+    protected function saveHTML($doc)
+    {
+        $content = $doc->saveHTML();
+        $content = mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content, 'UTF-8, ISO-8859-1', true));
+        $content = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content);
+        $content = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $content);
+        $content = str_replace('<',' <',$content);
+        $content = strip_tags($content);
+        $content = str_replace('  ', ' ', $content);
+        $content = preg_replace('/\s+/S', " ", $content);
+        $html = html_entity_decode($content);
+        $this->content .= $html;
+        echo $this->content;
     }
 }
