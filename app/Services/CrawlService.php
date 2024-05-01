@@ -17,16 +17,17 @@ class CrawlService
         }
         $paramName = $request->name ? $request->name : null;
 
+        $crawlObserver = new CustomCrawlObserver($param, $paramName);
         Crawler::create()
             ->acceptNofollowLinks()
             ->ignoreRobots()
             ->setParseableMimeTypes(['text/html', 'text/plain'])
-            ->setCrawlObserver(new CustomCrawlObserver($param, $paramName))
+            ->setCrawlObserver($crawlObserver)
             ->setMaximumResponseSize(1024 * 1024 * 3) // 2 MB maximum
             ->setTotalCrawlLimit(1) // limit defines the maximal count of URLs to crawl
             ->setDelayBetweenRequests(100)
             ->startCrawling($request->url);
 
-        return true;
+        return $crawlObserver->getData();
     }
 }

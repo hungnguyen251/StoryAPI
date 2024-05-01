@@ -47,9 +47,7 @@ class CustomCrawlObserver extends CrawlObserver
             return $node->text();
         });
 
-        foreach ($data as $item) {
-            echo "{$item}\n";
-        }
+        $this->content = $data;
     }
 
     // Save HTML
@@ -65,6 +63,9 @@ class CustomCrawlObserver extends CrawlObserver
         $content = preg_replace('/\s+/S', " ", $content);
         $html = html_entity_decode($content);
         $this->content .= $html;
-        echo $this->content;
+    }
+
+    public function getData() {
+        return $this->content;
     }
 }
