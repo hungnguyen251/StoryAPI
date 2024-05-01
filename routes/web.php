@@ -23,7 +23,7 @@ $router->group(['prefix' => 'crawler'], function () use ($router) {
 
 $router->group(['prefix' => 'category'], function () use ($router) {
     $router->get('/', 'CategoryController@getAll');
-    $router->get('/{id}}', 'CategoryController@getById');
+    $router->get('/{id}', 'CategoryController@getById');
     $router->patch('/update/{id}', 'CategoryController@updateById');
     $router->delete('/delete/{id}', 'CategoryController@delete');
     $router->post('/crawler-sync', 'CategoryController@store');

@@ -5,6 +5,7 @@ use App\Helpers\CommonHelper;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CategoryService
 {
@@ -17,12 +18,16 @@ class CategoryService
 
     public function getAll()
     {
-        return true;
+        $categories = Category::all();
+
+        return $categories;
     }
 
-    public function getById()
+    public function getById(int $id)
     {
-        return true;
+        $category = Category::findOrFail($id);
+
+        return $category;
     }
 
     public function create(Request $request)
@@ -52,13 +57,24 @@ class CategoryService
         }
     }
 
-    public function updateById()
+    public function updateById(array $attrs, int $id)
     {
-        return true;
+        $data = Category::findOrFail($id);
+        $data->fill($attrs);
+
+        if (!$data->isValidFor()) {
+            throw new ValidationException($data->validator());
+        }
+
+        $data->save();
+
+        return $data;
     }
 
-    public function delete()
+    public function delete(int $id)
     {
-        return true;
+        $data = Category::findOrFail($id);
+
+        return (bool) $data->delete();
     }
 }

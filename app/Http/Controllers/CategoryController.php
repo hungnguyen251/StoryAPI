@@ -28,9 +28,9 @@ class CategoryController extends AppBaseController
         return $this->sendResponse($categories, 'List category', Response::HTTP_OK);
     }
 
-    public function getById()
+    public function getById(int $id)
     {
-        $category = $this->categoryService->getById();
+        $category = $this->categoryService->getById($id);
 
         return $this->sendResponse($category, 'Get category by id', Response::HTTP_OK);
     }
@@ -48,16 +48,16 @@ class CategoryController extends AppBaseController
         return $this->sendResponse($categories, 'Sync category', Response::HTTP_OK);
     }
 
-    public function updateById()
+    public function updateById(Request $request, int $id)
     {
-        $categories = $this->categoryService->updateById();
+        $categories = $this->categoryService->updateById($request->all(), $id);
 
         return $this->sendResponse($categories, 'Update a category', Response::HTTP_OK);
     }
 
-    public function delete()
+    public function delete(int $id)
     {
-        $categories = $this->categoryService->delete();
+        $categories = $this->categoryService->delete($id);
 
         return $this->sendResponse($categories, 'Delete category successfully', Response::HTTP_OK);
     }
