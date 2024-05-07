@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Category extends Model
+class Story extends Model
 {
     use HasFactory, ModelValidatable;
 
@@ -17,7 +17,7 @@ class Category extends Model
      * @var string[]
      */
     protected $fillable = [
-        'name', 'slug',
+        'name', 'slug', 'status', 'thumb_url'
     ];
 
     /**
@@ -29,14 +29,19 @@ class Category extends Model
     {
         return [
             '*' => [
-                'name' => 'required|max:100',
-                'slug' => 'required|max:100',
+                'name' => 'required|max:255',
+                'slug' => 'required|max:255',
+                'status' => 'required|integer',
+                'thumb_url' => 'required|max:255',
             ],
         ];
     }
 
-    public function stories(): BelongsToMany
+    /**
+     * Get the categories for the story.
+     */
+    public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Story::class, 'story_categories');
+        return $this->belongsToMany(Category::class, 'story_categories');
     }
 }
